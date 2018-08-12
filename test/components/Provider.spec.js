@@ -2,10 +2,9 @@
 
 import React, { Component } from 'react'
 import PropTypes from 'prop-types'
-import semver from 'semver'
+import TestRenderer from 'react-test-renderer'
 import { createStore } from 'redux'
-import { Provider, createProvider, connect } from '../../src/index.js'
-import { TestRenderer, enzyme } from '../getTestDeps.js'
+import { Provider, createProvider, connect } from '../../src/index'
 
 describe('React', () => {
   describe('Provider', () => {
@@ -34,39 +33,23 @@ describe('React', () => {
       const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
 
       try {
-        expect(() => enzyme.mount(
+        expect(() => TestRenderer.create(
           <Provider store={store}>
             <div />
           </Provider>
         )).not.toThrow()
 
-        if (semver.lt(React.version, '15.0.0')) {
-          expect(() => enzyme.mount(
-            <Provider store={store}>
-            </Provider>
-          )).toThrow(/children with exactly one child/)
-        } else {
-          expect(() => enzyme.mount(
-            <Provider store={store}>
-            </Provider>
-          )).toThrow(/a single React element child/)
-        }
+        expect(() => TestRenderer.create(
+          <Provider store={store}>
+          </Provider>
+        )).toThrow(/a single React element child/)
 
-        if (semver.lt(React.version, '15.0.0')) {
-          expect(() => enzyme.mount(
-            <Provider store={store}>
-              <div />
-              <div />
-            </Provider>
-          )).toThrow(/children with exactly one child/)
-        } else {
-          expect(() => enzyme.mount(
-            <Provider store={store}>
-              <div />
-              <div />
-            </Provider>
-          )).toThrow(/a single React element child/)
-        }
+        expect(() => TestRenderer.create(
+          <Provider store={store}>
+            <div />
+            <div />
+          </Provider>
+        )).toThrow(/a single React element child/)
       } finally {
         Provider.propTypes = propTypes
         spy.mockRestore()
@@ -77,7 +60,7 @@ describe('React', () => {
       const store = createStore(() => ({}))
 
       const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-      const testRenderer = enzyme.mount(
+      const testRenderer = TestRenderer.create(
         <Provider store={store}>
           <Child />
         </Provider>
@@ -85,7 +68,7 @@ describe('React', () => {
       expect(spy).toHaveBeenCalledTimes(0)
       spy.mockRestore()
       
-      const child = testRenderer.find(Child).instance()
+      const child = testRenderer.root.findByType(Child).instance
       expect(child.context.store).toBe(store)
     })
 
@@ -95,7 +78,7 @@ describe('React', () => {
         const CustomChild = createChild('customStoreKey');
 
         const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const testRenderer = enzyme.mount(
+        const testRenderer = TestRenderer.create(
           <CustomProvider store={store}>
             <CustomChild />
           </CustomProvider>
@@ -103,7 +86,7 @@ describe('React', () => {
         expect(spy).toHaveBeenCalledTimes(0)
         spy.mockRestore()
 
-        const child = testRenderer.find(CustomChild).instance()
+        const child = testRenderer.root.findByType(CustomChild).instance
         expect(child.context.customStoreKey).toBe(store)
     })
 
@@ -126,12 +109,12 @@ describe('React', () => {
         }
       }
 
-      const testRenderer = enzyme.mount(<ProviderContainer />)
-      const child = testRenderer.find(Child).instance()
+      const testRenderer = TestRenderer.create(<ProviderContainer />)
+      const child = testRenderer.root.findByType(Child).instance
       expect(child.context.store.getState()).toEqual(11)
 
       let spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-      testRenderer.setState({ store: store2 })
+      testRenderer.root.instance.setState({ store: store2 })
       
       expect(child.context.store.getState()).toEqual(11)
       expect(spy).toHaveBeenCalledTimes(1)
@@ -145,7 +128,7 @@ describe('React', () => {
       spy.mockRestore()
       
       spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-      testRenderer.setState({ store: store3 })
+      testRenderer.root.instance.setState({ store: store3 })
       
       expect(child.context.store.getState()).toEqual(11)
       expect(spy).toHaveBeenCalledTimes(0)
@@ -168,7 +151,7 @@ describe('React', () => {
         render() { return <Provider store={innerStore}><Inner /></Provider> }
       }
 
-      enzyme.mount(<Provider store={outerStore}><Outer /></Provider>)
+      TestRenderer.create(<Provider store={outerStore}><Outer /></Provider>)
       expect(innerMapStateToProps).toHaveBeenCalledTimes(1)
 
       innerStore.dispatch({ type: 'INC'})
@@ -216,7 +199,7 @@ describe('React', () => {
       }
     }
 
-    const testRenderer = enzyme.mount(
+    const testRenderer = TestRenderer.create(
       <Provider store={store}>
         <Container />
       </Provider>
@@ -229,8 +212,8 @@ describe('React', () => {
     expect(childMapStateInvokes).toBe(2)
 
     // setState calls DOM handlers are batched
-    const button = testRenderer.find('button')
-    button.prop('onClick')()
+    const button = testRenderer.root.findByType('button')
+    button.props.onClick()
     expect(childMapStateInvokes).toBe(3)
 
     // Provider uses unstable_batchedUpdates() under the hood
@@ -238,10 +221,7 @@ describe('React', () => {
     expect(childMapStateInvokes).toBe(4)
   })
 
-  it('works in <StrictMode> without warnings (React 16.3+)', () => {
-    if (!React.StrictMode) {
-      return
-    }
+  it('works in <StrictMode> without warnings', () => {
     const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
     const store = createStore(() => ({}))
 
