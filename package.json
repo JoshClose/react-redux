@@ -35,7 +35,7 @@
     "clean": "rimraf lib dist es coverage",
     "lint": "eslint src test/utils test/components test/getTestDeps.js",
     "prepare": "npm run clean && npm run build",
-    "test": "node ./test/run-tests.js",
+    "test": "jest",
     "coverage": "codecov"
   },
   "peerDependencies": {
