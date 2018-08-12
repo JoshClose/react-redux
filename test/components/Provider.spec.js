@@ -15,10 +15,6 @@ describe('React', () => {
           }
         }
 
-        Child.contextTypes = {
-          [storeKey]: PropTypes.object.isRequired
-        }
-
         return Child
     }
     const Child = createChild();
@@ -56,39 +52,6 @@ describe('React', () => {
       }
     })
 
-    it('should add the store to the child context', () => {
-      const store = createStore(() => ({}))
-
-      const spy = jest.spyOn(console, 'error').mockImplementation(() => {})
-      const testRenderer = TestRenderer.create(
-        <Provider store={store}>
-          <Child />
-        </Provider>
-      )
-      expect(spy).toHaveBeenCalledTimes(0)
-      spy.mockRestore()
-      
-      const child = testRenderer.root.findByType(Child).instance
-      expect(child.context.store).toBe(store)
-    })
-
-    it('should add the store to the child context using a custom store key', () => {
-        const store = createStore(() => ({}))
-        const CustomProvider = createProvider('customStoreKey');
-        const CustomChild = createChild('customStoreKey');
-
-        const spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-        const testRenderer = TestRenderer.create(
-          <CustomProvider store={store}>
-            <CustomChild />
-          </CustomProvider>
-        )
-        expect(spy).toHaveBeenCalledTimes(0)
-        spy.mockRestore()
-
-        const child = testRenderer.root.findByType(CustomChild).instance
-        expect(child.context.customStoreKey).toBe(store)
-    })
 
     it('should warn once when receiving a new store in props', () => {
       const store1 = createStore((state = 10) => state + 1)
@@ -111,12 +74,11 @@ describe('React', () => {
 
       const testRenderer = TestRenderer.create(<ProviderContainer />)
       const child = testRenderer.root.findByType(Child).instance
-      expect(child.context.store.getState()).toEqual(11)
 
       let spy = jest.spyOn(console, 'error').mockImplementation(() => {})
       testRenderer.root.instance.setState({ store: store2 })
       
-      expect(child.context.store.getState()).toEqual(11)
+
       expect(spy).toHaveBeenCalledTimes(1)
       expect(spy.mock.calls[0][0]).toBe(
         '<Provider> does not support changing `store` on the fly. ' +
@@ -130,7 +92,7 @@ describe('React', () => {
       spy = jest.spyOn(console, 'error').mockImplementation(() => {})
       testRenderer.root.instance.setState({ store: store3 })
       
-      expect(child.context.store.getState()).toEqual(11)
+
       expect(spy).toHaveBeenCalledTimes(0)
       spy.mockRestore()
     })
