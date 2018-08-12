@@ -133,10 +133,7 @@ export default function connectAdvanced(
 
       shouldComponentUpdate(nextProps, nextState) {
         const childPropsChanged = nextState.childProps !== this.state.childProps;
-        const storeStateChanged = nextProps.storeState !== this.props.storeState;
         const hasError = !!nextState.error;
-
-        let wrapperPropsChanged = false;
 
         const shouldUpdate = childPropsChanged || hasError;
         return shouldUpdate;
