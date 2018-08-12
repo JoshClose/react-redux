@@ -2073,7 +2073,7 @@ describe('React', () => {
       expect(renderCount).toBe(2)
     })
 
-    it.skip('should allow to clean up child state in parent componentWillUnmount', () => {
+    it('should allow to clean up child state in parent componentWillUnmount', () => {
       function reducer(state = { data: null }, action) {
         switch (action.type) {
           case 'fetch':
